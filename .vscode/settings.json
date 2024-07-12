@@ -1,0 +1,10 @@
+{   
+    "Lua.workspace.library": [
+        "rom/apis"
+    ],
+    "Lua.diagnostics.globals": [
+        "turtle",
+        "vector"
+    ],
+    "editor.formatOnSave": true,
+}
