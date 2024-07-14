@@ -1,41 +1,9 @@
-local DEBUG = true
-
--------------------------------------------------------------------------------
-
-local moveDirections = {
-    forward = turtle.forward,
-    back = turtle.back,
-    up = turtle.up,
-    down = turtle.down,
-}
-
-local turnDirections = {
-    left = turtle.turnLeft,
-    right = turtle.turnRight,
-}
-
-local digDirections = {
-    forward = turtle.dig,
-    up = turtle.digUp,
-    down = turtle.digDown,
-}
-
-local inspectDirections = {
-    forward = turtle.inspect,
-    up = turtle.inspectUp,
-    down = turtle.inspectDown,
-}
-
-local function valueToKey(table, value)
-    for k, v in pairs(table) do
-        if v == value then
-            return k
-        end
-    end
-    return "unknown"
-end
-
--------------------------------------------------------------------------------
+local pretty = require "cc.pretty"
+local r = require "cc.require"
+local env = setmetatable({}, { __index = _ENV })
+env.require, env.package = r.make(env, "/")
+env.require("/Cloud/bin/api_extensions/turtle_extensions")
+env.require("/Cloud/bin/api_extensions/utils")
 
 local Bot = {}
 Bot.__index = Bot
@@ -75,27 +43,18 @@ function Bot:tryRefuel(distance)
     -- if fuel level is less than distance, try to refuel
     local fuel = turtle.getFuelLevel()
     if fuel < distance then
-        if DEBUG then
-            -- FUEL::Need to refuel -- Fuel = 0 Distance = 3
-            print("FUEL::Need to refuel -- Fuel = " .. fuel .. " Distance = " .. distance)
-        end
         return self:refuel()
     end
     return false
 end
 
-function Bot:tryMove(direction, distance)
-    if DEBUG then
-        -- MOVE::Trying to move forward 3
-        print("MOVE::Trying to move " .. valueToKey(moveDirections, direction) .. " " .. distance)
-    end
-
+function Bot:tryMove(moveDirection, distance)
     if not self:tryRefuel(distance) and turtle.getFuelLevel() < distance then
         return false
     end
 
     for _ = 1, distance do
-        if not direction() then
+        if not moveDirection() then
             return false
         end
     end
@@ -103,10 +62,53 @@ function Bot:tryMove(direction, distance)
     return true
 end
 
-function Bot:turn(direction, count)
+function Bot:turn(turnDirection, count)
     for _ = 1, count do
-        direction()
+        turnDirection()
     end
+    return true
+end
+
+function Bot:mineVein(direction)
+    env.digDirections[direction]()
+    env.moveDirections[direction]()
+    self:inspectPosition()
+    env.oppositeMoveDirections[direction]()
+    return true
+end
+
+function Bot:inspectDirection(inspectDirection)
+    local direction = env.valueToKey(env.inspectDirections, inspectDirection)
+    local isBlock, block = inspectDirection()
+
+    if not isBlock then
+        return true -- returning true because success not because no block
+    end
+
+    -- block is a vein
+    if env.isVein(block) then
+        -- turtle will exit this function in the same position it entered
+        self:mineVein(direction)
+    end
+end
+
+function Bot:inspectPosition()
+    -- inspect forward, up, down
+    for _, direction in pairs(env.inspectDirections) do
+        self:inspectDirection(direction)
+    end
+
+    -- inspect left
+    self:turn(env.turnDirections.left, 1)
+    self:inspectDirection(env.inspectDirections.forward)
+
+    -- inspect right
+    self:turn(env.turnDirections.right, 2)
+    self:inspectDirection(env.inspectDirections.forward)
+
+    -- reset direction
+    self:turn(env.turnDirections.left, 1)
+
     return true
 end
 
@@ -114,55 +116,17 @@ function Bot:tunnel(distance)
     -- a tunnel is a 1x1 that includes a 1x1 three blocks above the starting tunnel
     -- so it'll go some distance forward, turn around, go up three blocks, then come back
 
-    --[[
-    1x1
-    x dig forward
-    x move forward
-    o inspect
-    o inspect up
-    o inspect down,
-    x turn left
-    o inspect
-    x turn right
-    o inspect
-    x turn left
-    5 inspections for 5 movements
+    for _ = 1, distance do
+        self:inspectPosition()
+        env.digDirections.forward()
+        self:tryMove(env.moveDirections.forward, 1)
+    end
 
-    2x1
-    x dig forward
-    x move forward
-    o inspect
-    o inspect up
-    o inspect down,
-    x turn left
-    o inspect
-    x turn right
-    o inspect
-    x turn left -- now looking forward
-    5 inspections for 5 movements
-
-    x dig up
-    x move up
-    o inspect
-    o inspect up
-    x turn left
-    o inspect
-    x turn right
-    o inspect
-    x turn left -- now looking forward
-    4 inspections for 5 movements
-
-    ]]
+    self:tryMove(env.moveDirections.back, distance)
 end
 
 function Bot:resume()
-    while true
-    do
-        if not self:tryMove(moveDirections.forward, 3) then
-            print("MOVE::Failed to move forward 3")
-        end
-        self:turn(turnDirections.right, 2)
-    end
+    self:tunnel(10)
 end
 
 local function main()
