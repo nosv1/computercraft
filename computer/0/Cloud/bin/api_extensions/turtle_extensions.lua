@@ -22,6 +22,10 @@ turnDirections = {
     left = turtle.turnLeft,
     right = turtle.turnRight,
 }
+turnAngles = {
+    left = -90,
+    right = 90,
+}
 
 digDirections = {
     forward = turtle.dig,
@@ -33,6 +37,33 @@ inspectDirections = {
     forward = turtle.inspect,
     up = turtle.inspectUp,
     down = turtle.inspectDown,
+}
+
+directions = {
+    forward = "forward",
+    back = "back",
+    up = "up",
+    down = "down",
+    left = "left",
+    right = "right",
+}
+
+unitVectors = {
+    forward = vector.new(0, 0, 1),
+    back = vector.new(0, 0, -1),
+    up = vector.new(0, 1, 0),
+    down = vector.new(0, -1, 0),
+    left = vector.new(-1, 0, 0),
+    right = vector.new(1, 0, 0),
+}
+
+sides = {
+    front = "front",
+    back = "back",
+    top = "top",
+    bottom = "bottom",
+    left = "left",
+    right = "right",
 }
 
 blockTypes = {
@@ -84,7 +115,7 @@ blockTypes = {
         "create:shaft",
         "forbidden_arcanus:stella_arcanum"
     },
-    veins = {
+    vein = {
         "buddyblocks:luminis_ore",
         "minecraft:obsidian",
     }
@@ -93,7 +124,7 @@ blockTypes = {
 blockTypeKeys = {
     ground = "ground",
     avoid = "avoid",
-    veins = "veins",
+    vein = "vein",
 }
 
 function isBlockType(block, blockType)
@@ -108,6 +139,15 @@ end
 
 function isVein(block)
     local isOre = block.tags["forge:ores"]
-    local isVein = isBlockType(block, blockTypeKeys.veins)
+    local isVein = isBlockType(block, blockTypeKeys.vein)
     return isOre or isVein
+end
+
+function isInventoryFull()
+    for i = 1, 16 do
+        if turtle.getItemCount(i) == 0 then
+            return false
+        end
+    end
+    return true
 end

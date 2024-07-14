@@ -6,7 +6,7 @@ function vector_index:rotate(angle)
         math.cos(angle) * self.x - math.sin(angle) * self.z,
         self.y,
         math.sin(angle) * self.x + math.cos(angle) * self.z
-    )
+    ):round(1)
 end
 
 function vector_index:direction()
