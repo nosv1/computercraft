@@ -1,16 +1,5 @@
 {
-  blocks_avoided = {
-    [ "create:shaft" ] = {
-      y = 0,
-      x = 0,
-      z = 4,
-    },
-  },
-  facing = {
-    y = 0,
-    x = 0,
-    z = -1,
-  },
+  blocksAvoided = {},
   home = {
     y = 0,
     x = 0,
@@ -20,5 +9,12 @@
     y = 0,
     x = 0,
     z = 0,
+  },
+  startTime = 3904.488,
+  timeLeft = 0,
+  facing = {
+    y = 0,
+    x = 0,
+    z = -1,
   },
 }

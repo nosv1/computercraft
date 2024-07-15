@@ -15,6 +15,8 @@ function Bot:new(o)
         position = vector.new(0, 0, 0), -- TODO use gps location
         facing = vector.new(0, 0, 1),
         blocksAvoided = {},             -- { block_name = position }
+        startTime = nil,                -- in real life seconds
+        timeLeft = nil
     }
     setmetatable(o, self)
 
@@ -35,6 +37,13 @@ function Bot:toFile()
     file:close()
     print("Bot saved to " .. fileName)
     return true
+end
+
+function Bot:updateTimeLeft(distanceRemaining)
+    local now = os.epoch() / (1000 * 50) -- real life seconds
+    local elapsed = now - self.startTime
+    local speed = elapsed / self.position:length2D()
+    self.timeLeft = distanceRemaining * speed
 end
 
 function Bot:refuel(distance)
@@ -172,7 +181,7 @@ function Bot:inspectDirection(inspectDirection)
         self:mineVein(direction)
         return env.blockTypeKeys.vein
     elseif env.isBlockType(block, env.blockTypeKeys.avoid) then
-        self.blocks_avoided[block.name] = self.position -- where bot was when block was inspected
+        self.blocksAvoided[block.name] = self.position -- where bot was when block was inspected
         return env.blockTypeKeys.avoid
     elseif env.isBlockType(block, env.blockTypeKeys.ground) then
         return env.blockTypeKeys.ground
@@ -201,30 +210,29 @@ end
 
 function Bot:tunnel(distance)
     print("Tunneling for " .. distance .. " blocks...")
-    for i = 1, distance do
-        self:inspectPosition()
-        self:tryDig(env.digDirections.forward, 1)
-        if env.isInventoryFull() then
-            distance = i
-            break
+
+    self.startTime = os.epoch() / (1000 * 50)
+
+    local i = 1
+    while i <= distance do
+        for _, direction in ipairs({ env.directions.up, env.directions.down }) do
+            self:inspectPosition()
+            self:tryDig(env.digDirections.forward, 1)
+            i = i + 1
+
+            self:inspectPosition()
+            self:tryDig(env.digDirections[direction], 1)
+
+            if env.isInventoryFull() then
+                return i
+            end
+
+            self:updateTimeLeft(distance - (i - 1))
+            print("Time remaining: " .. math.floor(self.timeLeft * 10) / 10 .. "s")
         end
     end
 
-    print("Tunneled " .. distance .. " blocks.")
-    self:turn(env.turnDirections.left, 2)
-    self:tryDig(env.digDirections.forward, distance)
-
-    self:toFile()
-
-    -- sound noteblock
-    local power = true
-    while true do
-        for _, side in pairs(env.sides) do
-            redstone.setOutput(side, power)
-        end
-        power = not power
-        sleep(0.25)
-    end
+    return distance
 end
 
 function Bot:resume()
@@ -244,7 +252,25 @@ local function main()
         print("Usage: miner <distance>")
         return
     end
-    bot:tunnel(t_args[1])
+
+    local distance = bot:tunnel(tonumber(t_args[1]))
+
+    print("Tunneled " .. distance .. " blocks.")
+    bot:turn(env.turnDirections.left, 2)
+    bot:tryDig(env.digDirections.forward, distance)
+
+    bot:toFile()
+
+    -- sound noteblock
+    local power = true
+    while true do
+        for _, side in pairs(env.sides) do
+            redstone.setOutput(side, power)
+        end
+        power = not power
+        sleep(0.25)
+    end
+
     -- bot:resume()
 end
 
