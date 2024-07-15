@@ -220,8 +220,10 @@ function Bot:tunnel(distance)
             self:tryDig(env.digDirections.forward, 1)
             i = i + 1
 
-            self:inspectPosition()
-            self:tryDig(env.digDirections[direction], 1)
+            for j = 1, 2 do
+                self:inspectPosition()
+                self:tryDig(env.digDirections[direction], 1)
+            end
 
             if env.isInventoryFull() then
                 return i
