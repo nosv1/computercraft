@@ -1,10 +1,14 @@
-{   
+{
     "Lua.workspace.library": [
         "rom/apis"
     ],
     "Lua.diagnostics.globals": [
         "turtle",
-        "vector"
+        "vector",
+        "shell",
+        "textutils",
+        "redstone",
+        "sleep"
     ],
     "editor.formatOnSave": true,
 }
