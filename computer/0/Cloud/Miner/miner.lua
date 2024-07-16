@@ -208,9 +208,7 @@ function Bot:inspectPosition()
     return true
 end
 
-function Bot:tunnel(distance)
-    print("Tunneling for " .. distance .. " blocks...")
-
+function Bot:tunnel(distance, height)
     self.startTime = os.epoch() / (1000 * 50)
 
     local i = 1
@@ -220,7 +218,7 @@ function Bot:tunnel(distance)
             self:tryDig(env.digDirections.forward, 1)
             i = i + 1
 
-            for j = 1, 2 do
+            for j = 1, height - 1 do
                 self:inspectPosition()
                 self:tryDig(env.digDirections[direction], 1)
             end
@@ -229,12 +227,51 @@ function Bot:tunnel(distance)
                 return i
             end
 
+            if i > distance then
+                break
+            end
+
             self:updateTimeLeft(distance - (i - 1))
-            print("Time remaining: " .. math.floor(self.timeLeft * 10) / 10 .. "s")
         end
     end
 
     return distance
+end
+
+-- @tparm radius: circle radius
+-- @tparam height: cylinder height
+-- @tparam layer: layer to start at with 1 being the first block away from the middle
+function Bot:cylinder(radius, height, startingLayer)
+    -- self.position = vector.new(0, 0, startingLayer)
+    local layer = startingLayer
+    local count = 0
+    while layer <= radius do
+        if (self.position + self.facing):length2D() <= layer then
+            if (self.position + self.facing):length2D() <= layer - 1 then
+                self:tryMove(env.moveDirections.forward, 1)
+            else
+                self:tunnel(1, height)
+            end
+            self:tryMove(env.moveDirections.down, height)
+            self:turn(env.turnDirections.right, 1)
+        end
+
+        if self.position:length2D() == layer and (self.position.x == 0 or self.position.z == 0) then
+            count = count + 1
+            if count == 4 then
+                count = -1
+                layer = layer + 1
+                self:turn(env.turnDirections.left, 1)
+            end
+        end
+
+        while true do
+            if (self.position + self.facing):length2D() <= layer then
+                break
+            end
+            self:turn(env.turnDirections.left, 1)
+        end
+    end
 end
 
 function Bot:resume()
@@ -243,6 +280,10 @@ end
 
 local function main()
     local bot = Bot:new()
+    -- bot:cylinder(5, 3, 4)
+    -- _ = io.read()
+
+
     print("Checklist:")
     print("  facing forward?")
     print("  noteblock to the left or right?")
