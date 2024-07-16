@@ -175,16 +175,15 @@ function Bot:inspectDirection(inspectDirection)
         return nil
     end
 
-    -- block is a vein
-    if env.isVein(block) then
-        -- turtle will exit this function in the same position it entered
-        self:mineVein(direction)
-        return env.blockTypeKeys.vein
+    if env.isBlockType(block, env.blockTypeKeys.ground) then
+        return env.blockTypeKeys.ground
     elseif env.isBlockType(block, env.blockTypeKeys.avoid) then
         self.blocksAvoided[block.name] = self.position -- where bot was when block was inspected
         return env.blockTypeKeys.avoid
-    elseif env.isBlockType(block, env.blockTypeKeys.ground) then
-        return env.blockTypeKeys.ground
+    elseif env.isVein(block) then
+        -- turtle will exit this function in the same position it entered
+        self:mineVein(direction)
+        return env.blockTypeKeys.vein
     end
 end
 
@@ -292,11 +291,11 @@ local function main()
     _ = io.read()
 
     if #t_args < 1 then
-        print("Usage: miner <distance>")
+        print("Usage: miner <distance> <height>")
         return
     end
 
-    local distance = bot:tunnel(tonumber(t_args[1]))
+    local distance = bot:tunnel(tonumber(t_args[1]), tonumber(t_args[2]))
 
     print("Tunneled " .. distance .. " blocks.")
     bot:turn(env.turnDirections.left, 2)
