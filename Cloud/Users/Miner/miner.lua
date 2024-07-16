@@ -295,11 +295,13 @@ local function main()
         return
     end
 
-    local distance = bot:tunnel(tonumber(t_args[1]), tonumber(t_args[2]))
+    local distance = tonumber(t_args[1])
+    local height = tonumber(t_args[2])
+    local distance_tunneled = bot:tunnel(distance, height)
 
-    print("Tunneled " .. distance .. " blocks.")
+    print("Tunneled " .. distance_tunneled .. " blocks.")
     bot:turn(env.turnDirections.left, 2)
-    bot:tryDig(env.digDirections.forward, distance)
+    bot:tryDig(env.digDirections.forward, distance_tunneled)
 
     bot:toFile()
 
