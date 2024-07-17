@@ -28,7 +28,7 @@ function Bot:toString()
 end
 
 function Bot:toFile()
-    local fileName = "/Cloud/Miner/bot.bot"
+    local fileName = "/Cloud/Users/Miner/bot.bot"
     local file = io.open(fileName, "w")
     if not file then
         return false
