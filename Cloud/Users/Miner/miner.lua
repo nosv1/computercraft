@@ -245,11 +245,11 @@ end
 -- @tparam layer: layer to start at with 1 being the first block away from the middle
 function Bot:cylinder(radius, height, startingLayer)
     local layer = startingLayer
-    self:tryDig(env.digDirections.forward, layer)
+    self:tryDig(env.digDirections.forward, layer - 1) -- gets to starting point-ish
     local count = 0
     while layer <= radius do
         if (self.position + self.facing):length2D() <= layer then
-            if (self.position + self.facing):length2D() <= layer - 1 then
+            if (self.position + self.facing):length2D() < layer - 1 then
                 self:tryMove(env.moveDirections.forward, 1)
             else
                 self:tunnel(1, height)
