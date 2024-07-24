@@ -110,6 +110,10 @@ blockTypes = {
         "biomesoplenty:toadstool",
         "chisel:tyrian/rust",
     },
+    gravity = {
+        "minecraft:gravel",
+        "minecraft:sand",
+    },
     avoid = {
         "computercraft:turtle_normal",
         "create:shaft",
@@ -123,6 +127,7 @@ blockTypes = {
 
 blockTypeKeys = {
     ground = "ground",
+    gravity = "gravity",
     avoid = "avoid",
     vein = "vein",
 }

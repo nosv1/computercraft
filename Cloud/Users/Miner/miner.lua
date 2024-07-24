@@ -1,3 +1,6 @@
+-- nomenclature:
+-- the word *direction* is a string, but *digDirection* or *moveDirection* are functions
+
 local pretty = require "cc.pretty"
 local r = require "cc.require"
 local env = setmetatable({}, { __index = _ENV })
@@ -154,6 +157,10 @@ function Bot:tryDig(digDirection, distance)
         local blockType = self:inspectDirection(env.inspectDirections[direction])
         if blockType == env.blockTypeKeys.avoid then
             self:avoid(direction)
+        elseif blockType == env.blockTypeKeys.gravity
+            and direction == env.directions.forward then
+            digDirection()
+            self:tryDig(digDirection, 1)
         end
         digDirection()
         self:tryMove(env.moveDirections[direction], 1)
