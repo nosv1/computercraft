@@ -4,7 +4,10 @@
     ],
     "Lua.diagnostics.globals": [
         "turtle",
-        "vector"
+        "vector",
+        "shell",
+        "textutils",
+        "rednet"
     ],
     "editor.formatOnSave": true,
 }
