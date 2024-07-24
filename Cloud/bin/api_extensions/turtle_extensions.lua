@@ -120,7 +120,7 @@ blockTypes = {
         "forbidden_arcanus:stella_arcanum"
     },
     vein = {
-        "buddyblocks:luminis_ore",
+        "buddycards:luminis_ore",
         "minecraft:obsidian",
     }
 }
@@ -155,4 +155,16 @@ function isInventoryFull()
         end
     end
     return true
+end
+
+function dumpGround()
+    for i = 1, 16 do
+        local item = turtle.getItemDetail(i)
+        if item then
+            if isBlockType(item, blockTypeKeys.ground) then
+                turtle.select(i)
+                turtle.drop()
+            end
+        end
+    end
 end
