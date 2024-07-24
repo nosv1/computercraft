@@ -7,12 +7,9 @@
         "vector",
         "shell",
         "textutils",
-<<<<<<< HEAD
-        "rednet"
-=======
+        "rednet",
         "redstone",
         "sleep"
->>>>>>> 032481252810e7c30f1365029d8951cca22e4f0a
     ],
     "editor.formatOnSave": true,
 }
