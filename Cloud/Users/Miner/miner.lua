@@ -28,7 +28,7 @@ function Bot:toString()
 end
 
 function Bot:toFile()
-    local fileName = "/Cloud/Miner/bot.bot"
+    local fileName = "/Cloud/Users/Miner/bot.bot"
     local file = io.open(fileName, "w")
     if not file then
         return false
@@ -83,8 +83,10 @@ function Bot:tryMove(moveDirection, distance)
         if not moveDirection() then
             return false
         end
-        if direction == env.directions.forward or direction == env.directions.back then
+        if direction == env.directions.forward then
             self.position = self.position + self.facing
+        elseif direction == env.directions.back then
+            self.position = self.position - self.facing
         elseif direction == env.directions.up or direction == env.directions.down then
             self.position = self.position + env.unitVectors[direction]
         end
@@ -175,16 +177,15 @@ function Bot:inspectDirection(inspectDirection)
         return nil
     end
 
-    -- block is a vein
-    if env.isVein(block) then
-        -- turtle will exit this function in the same position it entered
-        self:mineVein(direction)
-        return env.blockTypeKeys.vein
+    if env.isBlockType(block, env.blockTypeKeys.ground) then
+        return env.blockTypeKeys.ground
     elseif env.isBlockType(block, env.blockTypeKeys.avoid) then
         self.blocksAvoided[block.name] = self.position -- where bot was when block was inspected
         return env.blockTypeKeys.avoid
-    elseif env.isBlockType(block, env.blockTypeKeys.ground) then
-        return env.blockTypeKeys.ground
+    elseif env.isVein(block) then
+        -- turtle will exit this function in the same position it entered
+        self:mineVein(direction)
+        return env.blockTypeKeys.vein
     end
 end
 
@@ -217,6 +218,7 @@ function Bot:tunnel(distance, height)
             self:inspectPosition()
             self:tryDig(env.digDirections.forward, 1)
             i = i + 1
+            print("Tunneled " .. i .. " blocks.")
 
             for j = 1, height - 1 do
                 self:inspectPosition()
@@ -242,17 +244,21 @@ end
 -- @tparam height: cylinder height
 -- @tparam layer: layer to start at with 1 being the first block away from the middle
 function Bot:cylinder(radius, height, startingLayer)
-    -- self.position = vector.new(0, 0, startingLayer)
     local layer = startingLayer
+    self:tryDig(env.digDirections.forward, layer - 1) -- gets to starting point-ish
     local count = 0
     while layer <= radius do
         if (self.position + self.facing):length2D() <= layer then
-            if (self.position + self.facing):length2D() <= layer - 1 then
+            if (self.position + self.facing):length2D() < layer - 1 then
                 self:tryMove(env.moveDirections.forward, 1)
             else
                 self:tunnel(1, height)
             end
-            self:tryMove(env.moveDirections.down, height)
+
+            while self.position.y ~= 0 do
+                self:tryMove(env.moveDirections.down, 1)
+            end
+
             self:turn(env.turnDirections.right, 1)
         end
 
@@ -261,6 +267,7 @@ function Bot:cylinder(radius, height, startingLayer)
             if count == 4 then
                 count = -1
                 layer = layer + 1
+                print("Layer: " .. layer)
                 self:turn(env.turnDirections.left, 1)
             end
         end
@@ -280,8 +287,13 @@ end
 
 local function main()
     local bot = Bot:new()
-    -- bot:cylinder(5, 3, 4)
-    -- _ = io.read()
+    if t_args[1] == "-c" then
+        local radius = tonumber(t_args[2])
+        local height = tonumber(t_args[3])
+        local layer = tonumber(t_args[4])
+        bot:cylinder(radius, height, layer)
+        return
+    end
 
 
     print("Checklist:")
@@ -292,15 +304,17 @@ local function main()
     _ = io.read()
 
     if #t_args < 1 then
-        print("Usage: miner <distance>")
+        print("Usage: miner <distance> <height>")
         return
     end
 
-    local distance = bot:tunnel(tonumber(t_args[1]))
+    local distance = tonumber(t_args[1])
+    local height = tonumber(t_args[2])
+    local distance_tunneled = bot:tunnel(distance, height)
 
-    print("Tunneled " .. distance .. " blocks.")
+    print("Tunneled " .. distance_tunneled .. " blocks.")
     bot:turn(env.turnDirections.left, 2)
-    bot:tryDig(env.digDirections.forward, distance)
+    bot:tryDig(env.digDirections.forward, distance_tunneled)
 
     bot:toFile()
 
