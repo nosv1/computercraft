@@ -158,6 +158,7 @@ function isInventoryFull()
 end
 
 function dumpGround()
+    local selectedSlot = turtle.getSelectedSlot()
     for i = 1, 16 do
         local item = turtle.getItemDetail(i)
         if item then
@@ -167,5 +168,5 @@ function dumpGround()
             end
         end
     end
-    turtle.select(1)
+    turtle.select(selectedSlot)
 end
