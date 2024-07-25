@@ -167,4 +167,5 @@ function dumpGround()
             end
         end
     end
+    turtle.select(1)
 end

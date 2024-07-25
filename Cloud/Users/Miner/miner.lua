@@ -224,6 +224,7 @@ function Bot:tunnel(distance, height)
         for _, direction in ipairs({ env.directions.up, env.directions.down }) do
             self:inspectPosition()
             self:tryDig(env.digDirections.forward, 1)
+            env.dumpGround()
             i = i + 1
             print("Tunneled " .. i .. " blocks.")
 
