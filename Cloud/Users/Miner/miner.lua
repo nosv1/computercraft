@@ -184,15 +184,17 @@ function Bot:inspectDirection(inspectDirection)
         return nil
     end
 
-    if env.isBlockType(block, env.blockTypeKeys.ground) then
-        return env.blockTypeKeys.ground
-    elseif env.isBlockType(block, env.blockTypeKeys.avoid) then
+    if env.isBlockType(block, env.blockTypeKeys.avoid) then
         self.blocksAvoided[block.name] = self.position -- where bot was when block was inspected
         return env.blockTypeKeys.avoid
+    elseif env.isBlockType(block, env.blockTypeKeys.gravity) then
+        return env.blockTypeKeys.gravity
     elseif env.isVein(block) then
         -- turtle will exit this function in the same position it entered
         self:mineVein(direction)
         return env.blockTypeKeys.vein
+    elseif env.isBlockType(block, env.blockTypeKeys.ground) then
+        return env.blockTypeKeys.ground
     end
 end
 
